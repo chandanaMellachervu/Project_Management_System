@@ -1,6 +1,6 @@
 import React from 'react';
 import Typewriter from 'typewriter-effect';
-import ProjectImage from '../../Images/project-management-concept-strategy-motivation-and-successful-leadership-analysis-and-development-of-online-marketing-modern-flat-cartoon-style-illustration-on-white-background-vector.jpg';  // Replace with your image path
+import ProjectImage from '../../Images/project.jpg';  // Replace with your image path
 
 const VignanPortalSection = () => {
   return (
