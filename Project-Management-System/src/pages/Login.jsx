@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { AlertCircle, GraduationCap, Users, Lock, Loader2 } from 'lucide-react';
+import Cookies from 'js-cookie';
+import { AlertCircle, Lock, Loader2 } from 'lucide-react';
+import { Toaster, toast } from 'react-hot-toast';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,7 +19,10 @@ const Login = () => {
 
   const fetchUserRole = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/faculties/role/${userId}`);
+      const response = await axios.get(
+        `http://localhost:5000/api/faculties/role/${userId}`,
+        { withCredentials: true }
+      );
       return response.data.role;
     } catch (error) {
       console.error('Error fetching user role:', error);
@@ -31,16 +36,41 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/students/login', {
-        registrationNumber: formData.id,
-        password: formData.password,
-      });
+      const response = await axios.post(
+        'http://localhost:5000/api/students/login',
+        {
+          registrationNumber: formData.id,
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
 
       login(response.data.token);
-      localStorage.setItem('userId', formData.id);
-      navigate('/');
+      Cookies.set('userId', formData.id);
+      toast.success('Login successful! Redirecting...', {
+        duration: 2000,
+        position: 'top-center',
+        style: {
+          background: '#10B981',
+          color: '#FFFFFF',
+          padding: '16px',
+          borderRadius: '8px',
+        },
+      });
+      setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      const errorMessage = err.response?.data?.message || 'Invalid credentials';
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          padding: '16px',
+          borderRadius: '8px',
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -52,20 +82,45 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/faculties/login', {
-        facultyId: formData.id,
-        password: formData.password,
-      });
+      const response = await axios.post(
+        'http://localhost:5000/api/faculties/login',
+        {
+          facultyId: formData.id,
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
 
       login(response.data.token);
-      localStorage.setItem('userId', formData.id);
+      Cookies.set('userId', formData.id);
       const userRole = await fetchUserRole(formData.id);
       if (userRole) {
-        localStorage.setItem('userRole', userRole);
+        Cookies.set('userRole', userRole);
       }
-      navigate('/');
+      toast.success('Login successful! Redirecting...', {
+        duration: 2000,
+        position: 'top-center',
+        style: {
+          background: '#FFFFFF',
+          color: '#085c40',
+          padding: '16px',
+          borderRadius: '8px',
+        },
+      });
+      setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      const errorMessage = err.response?.data?.message || 'Invalid credentials';
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          padding: '16px',
+          borderRadius: '8px',
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -73,10 +128,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-4">
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          className: 'transform -translate-y-32',
+        }}
+      />
       <div className="w-full max-w-md">
-        {/* Main card */}
         <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-blue-100">
-          {/* Header */}
           <div className="bg-blue-900 p-8 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
               {[...Array(10)].map((_, i) => (
@@ -98,7 +157,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Login form */}
           <div className="p-8">
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center">
@@ -107,7 +165,6 @@ const Login = () => {
               </div>
             )}
 
-            {/* User type selection */}
             <div className="mb-6">
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -116,36 +173,32 @@ const Login = () => {
                   className={`p-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
                     formData.type === 'student'
                       ? 'bg-gradient-to-r from-teal-800 to-cyan-600 text-amber-500 shadow-md'
-
                       : 'bg-blue-50 text-blue-900 hover:bg-blue-100'
                   }`}
                 >
-                 <img 
-  src={"/Images/Student.jpeg"} 
-  alt="Student" 
-  className="h-20 w-20 rounded-full object-cover"
-/>
-
+                  <img 
+                    src={"/Images/Student.jpeg"} 
+                    alt="Student" 
+                    className="h-20 w-20 rounded-full object-cover"
+                  />
                   <span className="text-sm font-semibold">Student</span>
-                  </button>
-<button
-  type="button"
-  onClick={() => setFormData({ ...formData, type: 'faculty' })}
-  className={`p-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
-    formData.type === 'faculty'
-      ? 'bg-gradient-to-r from-teal-800 to-cyan-600 text-amber-500 shadow-md'
-
-      : 'bg-blue-50 text-blue-900 hover:bg-blue-100'
-  }`}
->
-  <img 
-    src={"/Images/faculty.jpeg"} 
-    alt="Faculty" 
-    className="h-20 w-20 rounded-full object-cover"
-  />
-  <span className="text-sm font-semibold">Faculty</span>
-</button>
-
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: 'faculty' })}
+                  className={`p-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
+                    formData.type === 'faculty'
+                      ? 'bg-gradient-to-r from-teal-800 to-cyan-600 text-amber-500 shadow-md'
+                      : 'bg-blue-50 text-blue-900 hover:bg-blue-100'
+                  }`}
+                >
+                  <img 
+                    src={"/Images/faculty.jpeg"} 
+                    alt="Faculty" 
+                    className="h-20 w-20 rounded-full object-cover"
+                  />
+                  <span className="text-sm font-semibold">Faculty</span>
+                </button>
               </div>
             </div>
 
@@ -188,7 +241,7 @@ const Login = () => {
                 {loading ? (
                   <>
                     <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                    Signi-ng in...
+                    Signing in...
                   </>
                 ) : (
                   'Sign in'

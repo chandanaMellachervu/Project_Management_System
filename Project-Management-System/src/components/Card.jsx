@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Users, Award, ChevronRight, PieChart, ShieldAlert, Search, CheckCircle, Clock, BarChart, Download } from 'lucide-react';
 import Image from '../../Images/6763395.webp';
-
+import Cookies from 'js-cookie';
 function App() {
   const [batches, setBatches] = useState({});
   const [guides, setGuides] = useState({});
@@ -79,7 +79,7 @@ function App() {
         setReviews(JSON.parse(savedReviews));
       }
 
-      const role = localStorage.getItem("userRole") || "coordinator";
+      const role = Cookies.get('userRole') || "coordinator";
       setUserRole(role);
 
       const batchesResponse = await fetch("http://localhost:5000/api/alloc/getBatches");

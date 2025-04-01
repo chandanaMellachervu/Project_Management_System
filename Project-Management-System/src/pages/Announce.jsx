@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Trash2, Edit2, Plus, Check, X, Calendar, Clock, Info } from 'lucide-react';
+import Cookies from 'js-cookie'; // Import js-cookie for handling cookies
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState(() => {
@@ -15,12 +16,11 @@ const Announcements = () => {
   });
   const [userRole, setUserRole] = useState('');
 
-  // Fetch user role from local storage on component mount
+  // Fetch user role from cookie on component mount
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
+    const role = Cookies.get('userRole'); // Get 'userRole' from cookies
     setUserRole(role);
   }, []);
-
   // Save announcements to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('announcements', JSON.stringify(announcements));

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { PieChart, XCircle, BookOpen, Award, Users, Sparkles, CheckCircle, AlertCircle, Crown } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
-
+import Cookies from 'js-cookie';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const evaluationParameters = [
@@ -46,7 +46,7 @@ const StudentCard = () => {
     const [guide, setGuide] = useState("Not Assigned");
 
     useEffect(() => {
-        const id = localStorage.getItem("userId");
+        const id = Cookies.get('userId');
         setUserId(id);
         setLoading(true);
 

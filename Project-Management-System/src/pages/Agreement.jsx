@@ -255,7 +255,7 @@ const Agreement = ({ isOpen, setIsOpen }) => {
                 }`}
                 disabled={!agreed}
               >
-                ✅ Close
+                ✅ Accept
               </button>
             </div>
           )}

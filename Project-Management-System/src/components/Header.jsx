@@ -15,6 +15,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import Cookies from 'js-cookie'; // Import js-cookie for cookie handling
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -22,12 +23,17 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
+    // Remove cookies
+    Cookies.remove('userId', { path: '/' });
+    Cookies.remove('userRole', { path: '/' });
+  
     logout();
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userRole');
-    navigate('/');
+    navigate('/'); // Redirect to login or home
   };
-  const userRole = localStorage.getItem('userRole');
+  
+
+  // Get userRole from cookies instead of localStorage
+  const userRole = Cookies.get('userRole');
   console.log(userRole);
 
   return (

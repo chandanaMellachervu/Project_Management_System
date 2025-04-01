@@ -2,26 +2,27 @@ import React, { useEffect, useState } from "react";
 import Card from '../components/Card';
 import StudentCard from '../components/StudentCard';
 import { Search } from 'lucide-react';
-
+import Cookies from 'js-cookie';
 function Progress() {
     const [userRole, setUserRole] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [batches, setBatches] = useState({});
     const [filteredBatches, setFilteredBatches] = useState({});
 
-    useEffect(() => {
-        const role = localStorage.getItem("userRole");
-        setUserRole(role);
+  useEffect(() => {
+    // Fetch userRole from cookie
+    const role = Cookies.get('userRole'); // Get 'userRole' from cookies
+    setUserRole(role);
 
-        // Fetch batches data
-        fetch("http://localhost:5000/api/alloc/getBatches")
-            .then((res) => res.json())
-            .then((data) => {
-                setBatches(data.batches);
-                setFilteredBatches(data.batches);
-            })
-            .catch((error) => console.error("Error fetching batches:", error));
-    }, []);
+    // Fetch batches data
+    fetch("http://localhost:5000/api/alloc/getBatches")
+      .then((res) => res.json())
+      .then((data) => {
+        setBatches(data.batches);
+        setFilteredBatches(data.batches);
+      })
+      .catch((error) => console.error("Error fetching batches:", error));
+  }, []); 
 
     useEffect(() => {
         // Filter batches based on search query (batch number or registration number)
