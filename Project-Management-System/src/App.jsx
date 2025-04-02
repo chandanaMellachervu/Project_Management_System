@@ -21,7 +21,7 @@ const BatchReview = lazy(() => import('./pages/BatchReview'));
 const Marks = lazy(() => import('./pages/Marks'));
 const Announcements = lazy(() => import('./pages/Announce'));
 const AboutUs = lazy(() => import('./pages/Aboutus'));
-const AttendanceReports = lazy(() => import('./pages/AttendanceReports'));
+
 
 export default function App() {
   return (
@@ -48,7 +48,7 @@ export default function App() {
                 <Route path="/marks" element={<Marks />} />
                 <Route path="/announcements" element={<Announcements />} />
                 <Route path="/about" element={<AboutUs />} />
-                <Route path="/attendance" element={<AttendanceReports />} />
+                
               </Routes>
             </Suspense>
           </main>
