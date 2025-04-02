@@ -1,25 +1,28 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import FacultySignup from './pages/FacultySignup';
-import SignupChoice from './pages/SignupChoice';
-import Dashboard from './pages/Dashboard';
-import Upload from './pages/Upload';
-import Review from './pages/Review';
 import { AuthProvider } from './context/AuthContext';
-import List from './pages/List';
-import Agreement from './pages/Agreement'
-import StudentSignup from './pages/StudentSignup'
-import Uploads from './pages/Uploads'
-import Progress from'./pages/Progress'
-import BatchReview from './pages/BatchReview'
-import Marks from './pages/Marks'
-import Announcements from './pages/Announce'
-import AboutUs from './pages/Aboutus';
-// import AttendanceReports from './pages/AttendanceReports'
+
+// Lazy load pages
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const FacultySignup = lazy(() => import('./pages/FacultySignup'));
+const SignupChoice = lazy(() => import('./pages/SignupChoice'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Upload = lazy(() => import('./pages/Upload'));
+const Review = lazy(() => import('./pages/Review'));
+const List = lazy(() => import('./pages/List'));
+const Agreement = lazy(() => import('./pages/Agreement'));
+const StudentSignup = lazy(() => import('./pages/StudentSignup'));
+const Uploads = lazy(() => import('./pages/Uploads'));
+const Progress = lazy(() => import('./pages/Progress'));
+const BatchReview = lazy(() => import('./pages/BatchReview'));
+const Marks = lazy(() => import('./pages/Marks'));
+const Announcements = lazy(() => import('./pages/Announce'));
+const AboutUs = lazy(() => import('./pages/Aboutus'));
+const AttendanceReports = lazy(() => import('./pages/AttendanceReports'));
+
 export default function App() {
   return (
     <AuthProvider>
@@ -27,26 +30,27 @@ export default function App() {
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignupChoice />} />
-              <Route path="/signup/student" element={<StudentSignup />} />
-              <Route path="/signup/faculty" element={<FacultySignup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/agreement" element={<Agreement />} />
-              <Route path="/list" element={<List />} />
-              <Route path="/uploads" element={<Uploads />} />
-              <Route path="/review" element={<Review />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/batchreview" element={<BatchReview />} />
-              <Route path="/marks" element={<Marks />} />
-              <Route path="/announcements" element={<Announcements />} />
-              <Route path="/about" element={<AboutUs />} />
-              <Route path="/marks" element={<Marks />} />
-              {/* <Route path="/attendance" element={<AttendanceReports />} /> */}
-            </Routes>
+            <Suspense fallback={<div className="text-center p-5">Loading...</div>}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignupChoice />} />
+                <Route path="/signup/student" element={<StudentSignup />} />
+                <Route path="/signup/faculty" element={<FacultySignup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/agreement" element={<Agreement />} />
+                <Route path="/list" element={<List />} />
+                <Route path="/uploads" element={<Uploads />} />
+                <Route path="/review" element={<Review />} />
+                <Route path="/progress" element={<Progress />} />
+                <Route path="/batchreview" element={<BatchReview />} />
+                <Route path="/marks" element={<Marks />} />
+                <Route path="/announcements" element={<Announcements />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/attendance" element={<AttendanceReports />} />
+              </Routes>
+            </Suspense>
           </main>
           <Footer />
         </div>
