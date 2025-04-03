@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Users, Award, ChevronRight, PieChart, ShieldAlert, Search, CheckCircle, Clock, BarChart, Download } from 'lucide-react';
 import Image from '../../Images/6763395.webp';
 import Cookies from 'js-cookie';
+import axios from 'axios';
 function App() {
   const [batches, setBatches] = useState({});
   const [guides, setGuides] = useState({});
@@ -79,8 +80,11 @@ function App() {
         setReviews(JSON.parse(savedReviews));
       }
 
-      const role = Cookies.get('userRole') || "coordinator";
-      setUserRole(role);
+      const roleResponse = await axios.get(
+        'http://localhost:5000/api/faculties/user-role',
+        { withCredentials: true }
+      );
+      setUserRole(roleResponse.data.role);
 
       const batchesResponse = await fetch("http://localhost:5000/api/alloc/getBatches");
       if (!batchesResponse.ok) {

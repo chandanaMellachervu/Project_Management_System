@@ -1,55 +1,64 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Check authentication status on initial load
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      verifyToken(token);
-    }
+    const checkAuth = async () => {
+      try {
+        // Check if user is authenticated
+        const authResponse = await axios.get(
+          'http://localhost:5000/api/faculties/auth-check',
+          { withCredentials: true }
+        );
+        
+        if (authResponse.data.isAuthenticated) {
+          // Get user info from backend
+          const userResponse = await axios.get(
+            'http://localhost:5000/api/faculties/user',
+            { withCredentials: true }
+          );
+          
+          setUser({
+            authenticated: true,
+            role: userResponse.data.role
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const verifyToken = async (token) => {
-    try {
-      const response = await axios.get('/api/auth/verify', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data);
-    } catch (error) {
-      logout();
-    }
-  };
-
-  const login = (token) => {
-    localStorage.setItem('token', token);
-    verifyToken(token);
+  const login = (userData) => {
+    setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      logout,
-      isAuthenticated: !!user
-    }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
+
+export default AuthContext;

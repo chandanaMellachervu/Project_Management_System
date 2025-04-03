@@ -46,22 +46,33 @@ const StudentCard = () => {
     const [guide, setGuide] = useState("Not Assigned");
 
     useEffect(() => {
-        const id = Cookies.get('userId');
-        setUserId(id);
         setLoading(true);
 
-        fetch("http://localhost:5000/api/alloc/getBatches")
+        // Fetch user data first
+        fetch("http://localhost:5000/api/faculties/user", { credentials: "include" })
             .then((res) => res.json())
-            .then((data) => {
-                setBatches(data.batches);
-                checkStudentPresence(data.batches, id);
-                setLoading(false);
+            .then((userData) => {
+                if (userData?.userId && userData?.authenticated && userData?.role === "student") {
+                    setUserId(userData.userId);
+
+                    // Now fetch batch data
+                    return fetch("http://localhost:5000/api/alloc/getBatches");
+                } else {
+                    throw new Error("User not authenticated or invalid role");
+                }
+            })
+            .then((res) => res.json())
+            .then((batchData) => {
+                setBatches(batchData.batches);
+                checkStudentPresence(batchData.batches, userId);  // Ensure userId is correctly passed
             })
             .catch((error) => {
-                console.error("Error fetching batches:", error);
-                setLoading(false);
-            });
+                console.error("Error:", error);
+            })
+            .finally(() => setLoading(false));
     }, []);
+
+    
 
     useEffect(() => {
         if (selectedBatch) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Trash2, Edit2, Plus, Check, X, Calendar, Clock, Info } from 'lucide-react';
-import Cookies from 'js-cookie'; // Import js-cookie for handling cookies
+import axios from 'axios'; // Using axios instead of js-cookie
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState(() => {
@@ -15,12 +15,35 @@ const Announcements = () => {
     deadline: ''
   });
   const [userRole, setUserRole] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch user role from cookie on component mount
+  // Fetch user role and authentication status from backend on component mount
   useEffect(() => {
-    const role = Cookies.get('userRole'); // Get 'userRole' from cookies
-    setUserRole(role);
+    const checkAuthAndRole = async () => {
+      try {
+        // First check if user is authenticated
+        const authResponse = await axios.get('http://localhost:5000/api/faculties/auth-check', { withCredentials: true });
+        setIsAuthenticated(authResponse.data.isAuthenticated);
+        
+        if (authResponse.data.isAuthenticated) {
+          // If authenticated, fetch role
+          const roleResponse = await axios.get('http://localhost:5000/api/faculties/user-role', { withCredentials: true });
+          setUserRole(roleResponse.data.role);
+        }
+      } catch (error) {
+        console.error('Authentication check error:', error);
+        // If there's an error, assume user is not authenticated
+        setIsAuthenticated(false);
+        setUserRole('');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthAndRole();
   }, []);
+
   // Save announcements to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('announcements', JSON.stringify(announcements));
@@ -110,6 +133,14 @@ const Announcements = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -117,7 +148,7 @@ const Announcements = () => {
           <Megaphone className="w-8 h-8 mr-3 text-indigo-600" />
           {isProjectCoordinator ? 'Post Announcements' : 'Announcements'}
         </h1>
-        {isProjectCoordinator && (
+        {isAuthenticated && isProjectCoordinator && (
           <button
             onClick={() => setShowForm(true)}
             className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-md hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md flex items-center"
@@ -128,7 +159,7 @@ const Announcements = () => {
         )}
       </div>
 
-      {showForm && isProjectCoordinator && (
+      {showForm && isAuthenticated && isProjectCoordinator && (
         <div className="bg-white p-6 rounded-lg shadow-lg mb-8 border border-gray-100">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Create New Announcement</h2>
           <div className="space-y-4">
@@ -196,7 +227,7 @@ const Announcements = () => {
           <Info className="w-16 h-16 mx-auto text-gray-300 mb-4" />
           <h3 className="text-xl font-medium text-gray-700 mb-2">No Announcements Yet</h3>
           <p className="text-gray-500">
-            {isProjectCoordinator 
+            {isAuthenticated && isProjectCoordinator 
               ? "Create your first announcement by clicking the 'Write Announcement' button above."
               : "There are no announcements at this time. Check back later."}
           </p>
@@ -213,7 +244,7 @@ const Announcements = () => {
                 key={announcement.id} 
                 className="bg-white p-6 rounded-lg shadow-md border-l-4 border-indigo-500 hover:shadow-lg transition-shadow"
               >
-                {isEditing === announcement.id && isProjectCoordinator ? (
+                {isEditing === announcement.id && isAuthenticated && isProjectCoordinator ? (
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium text-gray-800 mb-2">Edit Announcement</h3>
                     <div>
@@ -271,7 +302,7 @@ const Announcements = () => {
                   <>
                     <div className="flex justify-between items-start">
                       <h2 className="text-xl font-semibold text-gray-800">{announcement.title}</h2>
-                      {isProjectCoordinator && (
+                      {isAuthenticated && isProjectCoordinator && (
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEdit(announcement)}

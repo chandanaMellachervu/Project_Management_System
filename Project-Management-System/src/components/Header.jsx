@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Idea from '../../Images/idea.png';
+import axios from 'axios';
 import { 
   Home as HomeIcon, 
   LineChart, 
@@ -15,26 +16,68 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import Cookies from 'js-cookie'; // Import js-cookie for cookie handling
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState("student");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleLogout = () => {
-    // Remove cookies
-    Cookies.remove('userId', { path: '/' });
-    Cookies.remove('userRole', { path: '/' });
-  
-    logout();
-    navigate('/'); // Redirect to login or home
+  // Fetch authentication status and user role on component mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const authResponse = await axios.get(
+          'http://localhost:5000/api/faculties/auth-check',
+          { withCredentials: true }
+        );
+        
+        setIsAuthenticated(authResponse.data.isAuthenticated);
+        
+        // Only fetch role if authenticated
+        if (authResponse.data.isAuthenticated) {
+          try {
+            const roleResponse = await axios.get(
+              'http://localhost:5000/api/faculties/user-role',
+              { withCredentials: true }
+            );
+            setUserRole(roleResponse.data.role);
+          } catch (error) {
+            console.error('Error fetching user role:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking authentication status:', error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [user]); // Re-check when user state changes
+
+  const handleLogout = async () => {
+    try {
+      // Call logout endpoint to destroy session on server
+      await axios.post(
+        'http://localhost:5000/api/faculties/logout',
+        {},
+        { withCredentials: true }
+      );
+      
+      // Update local state
+      setUserRole(null);
+      setIsAuthenticated(false);
+      
+      // Call auth context logout
+      logout();
+      
+      // Redirect to home
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
-  
-
-  // Get userRole from cookies instead of localStorage
-  const userRole = Cookies.get('userRole');
-  console.log(userRole);
 
   return (
     <header className="bg-gradient-to-r from-[#46c5e5] via-[#6D28D9] to-[#9333EA] text-white shadow-lg relative">
@@ -87,6 +130,7 @@ const Header = () => {
             </Link>
             {userRole === 'DEO' && (
               <Link to="/upload" className="relative flex items-center space-x-1 text-white after:content-[''] after:absolute after:left-0 after:bottom-[-3px] after:w-0 after:h-[3px] after:bg-[#D4A017] after:rounded-full hover:after:w-full hover:after:h-[4px]">
+                <Upload className="h-4 w-4" />
                 <span>Upload</span>
               </Link>
             )}
@@ -142,9 +186,8 @@ const Header = () => {
                 </>
               )}
               <div className="pt-4 border-t border-purple-400">
-                {user ? (
+                {isAuthenticated ? (
                   <>
-                    <span className="block text-white mb-2">{user.name}</span>
                     <button
                       onClick={() => {
                         handleLogout();
@@ -181,9 +224,9 @@ const Header = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
+            {isAuthenticated ? (
               <>
-                <span className="text-sm">{user.name}</span>
+
                 <button
                   onClick={handleLogout}
                   className="bg-white text-[#6D28D9] font-semibold px-6 py-2 rounded-2xl shadow-lg border-2 border-[#6D28D9] hover:scale-105 transition-all duration-300"
@@ -215,4 +258,5 @@ const Header = () => {
     </header>
   );
 };
+
 export default Header;

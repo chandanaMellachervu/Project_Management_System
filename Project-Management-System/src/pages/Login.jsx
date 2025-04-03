@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import Cookies from 'js-cookie';
 import { AlertCircle, Lock, Loader2 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -16,19 +15,6 @@ const Login = () => {
     password: '',
     type: 'faculty',
   });
-
-  const fetchUserRole = async (userId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/faculties/role/${userId}`,
-        { withCredentials: true }
-      );
-      return response.data.role;
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-  };
 
   const handleStudentLogin = async (e) => {
     e.preventDefault();
@@ -45,8 +31,9 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      login(response.data.token);
-      Cookies.set('userId', formData.id);
+      // We don't need to set token in login anymore, as we're using sessions
+      login(response.data);
+
       toast.success('Login successful! Redirecting...', {
         duration: 2000,
         position: 'top-center',
@@ -59,7 +46,7 @@ const Login = () => {
       });
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Invalid credentials';
+      const errorMessage = err.response?.data?.error || 'Invalid credentials';
       setError(errorMessage);
       toast.error(errorMessage, {
         duration: 3000,
@@ -91,12 +78,12 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      login(response.data.token);
-      Cookies.set('userId', formData.id);
-      const userRole = await fetchUserRole(formData.id);
-      if (userRole) {
-        Cookies.set('userRole', userRole);
-      }
+      // Pass user data to login function
+      login({
+        name: response.data.name,
+        authenticated: true
+      });
+      
       toast.success('Login successful! Redirecting...', {
         duration: 2000,
         position: 'top-center',
@@ -109,7 +96,7 @@ const Login = () => {
       });
       setTimeout(() => navigate('/'), 2000);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Invalid credentials';
+      const errorMessage = err.response?.data?.error || 'Invalid credentials';
       setError(errorMessage);
       toast.error(errorMessage, {
         duration: 3000,
