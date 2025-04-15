@@ -45,33 +45,41 @@ const StudentCard = () => {
     const [loading, setLoading] = useState(true);
     const [guide, setGuide] = useState("Not Assigned");
 
-    useEffect(() => {
-        setLoading(true);
+    // First, remove the checkStudentPresence call from your first useEffect
+useEffect(() => {
+    setLoading(true);
 
-        // Fetch user data first
-        fetch("http://localhost:5000/api/faculties/user", { credentials: "include" })
-            .then((res) => res.json())
-            .then((userData) => {
-                if (userData?.userId && userData?.authenticated && userData?.role === "student") {
-                    setUserId(userData.userId);
+    // Fetch user data first
+    fetch("http://localhost:5000/api/faculties/user", { credentials: "include" })
+        .then((res) => res.json())
+        .then((userData) => {
+            if (userData?.userId && userData?.authenticated && userData?.role === "student") {
+                setUserId(userData.userId); // This sets userId
 
-                    // Now fetch batch data
-                    return fetch("http://localhost:5000/api/alloc/getBatches");
-                } else {
-                    throw new Error("User not authenticated or invalid role");
-                }
-            })
-            .then((res) => res.json())
-            .then((batchData) => {
-                setBatches(batchData.batches);
-                checkStudentPresence(batchData.batches, userId);  // Ensure userId is correctly passed
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-            })
-            .finally(() => setLoading(false));
-    }, []);
+                // Now fetch batch data
+                return fetch("http://localhost:5000/api/alloc/getBatches");
+            } else {
+                throw new Error("User not authenticated or invalid role");
+            }
+        })
+        .then((res) => res.json())
+        .then((batchData) => {
+            setBatches(batchData.batches);
+            // Remove this call: checkStudentPresence(batchData.batches, userId);
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        })
+        .finally(() => setLoading(false));
+}, []);
 
+// Then add a new useEffect that depends on both userId and batches
+useEffect(() => {
+    // Only run this effect when both userId and batches are available
+    if (userId && Object.keys(batches).length > 0) {
+        checkStudentPresence(batches, userId);
+    }
+}, [userId, batches]);
     
 
     useEffect(() => {
